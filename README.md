@@ -20,6 +20,8 @@ YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çevir
 
 ## 🚀 Kurulum
 
+### Linux / macOS
+
 1. **Repoyu klonlayın:**
 ```bash
 git clone <repo-url>
@@ -42,6 +44,54 @@ cp .env.example .env
 ```
 APIFY_API_KEY=your_apify_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### 🪟 Windows PowerShell
+
+1. **Python'un yüklü olduğunu kontrol edin:**
+```powershell
+python --version
+```
+
+2. **Proje klasörüne gidin:**
+```powershell
+cd C:\Users\YourUsername\gemini_api_rag
+```
+
+3. **Sanal ortam oluşturun (önerilen):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+**Not:** Eğer çalıştırma izni hatası alırsanız:
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+4. **Bağımlılıkları yükleyin:**
+```powershell
+pip install -r requirements.txt
+```
+
+5. **API anahtarlarını ayarlayın:**
+```powershell
+# .env dosyasını oluştur
+Copy-Item .env.example .env
+
+# Not Defteri ile düzenle
+notepad .env
+```
+
+`.env` dosyasına API anahtarlarınızı ekleyin:
+```
+APIFY_API_KEY=buraya_apify_anahtarinizi_yapisirin
+GEMINI_API_KEY=buraya_gemini_anahtarinizi_yapisirin
+```
+
+6. **Programı çalıştırın:**
+```powershell
+python main.py
 ```
 
 ## 💡 Kullanım
@@ -205,6 +255,38 @@ self.translator = GoogleTranslator(source='auto', target='en')  # İngilizce iç
 - API anahtarının geçerli olduğundan emin olun
 - Gemini API limitlerini kontrol edin
 - İnternet bağlantınızı kontrol edin
+
+### 🪟 Windows PowerShell Sorunları
+
+#### "python komutu bulunamadı"
+```powershell
+# Python'un PATH'e eklendiğinden emin olun
+# Veya tam yol ile çalıştırın:
+C:\Python311\python.exe main.py
+```
+
+#### "Activate.ps1 çalıştırılamıyor"
+```powershell
+# PowerShell'i Yönetici olarak açın:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+#### Modül bulunamadı hatası
+```powershell
+# Paketleri tekrar yükleyin:
+pip install --upgrade -r requirements.txt
+```
+
+#### Kurulumu test etme
+```powershell
+# Python versiyonu
+python --version
+
+# Paket kontrolü
+python -c "import apify_client; print('Apify OK')"
+python -c "import google.generativeai; print('Gemini OK')"
+python -c "from youtube_transcript_api import YouTubeTranscriptApi; print('YouTube API OK')"
+```
 
 ## 🤝 Katkıda Bulunma
 
