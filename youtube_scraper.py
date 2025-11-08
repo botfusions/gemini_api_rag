@@ -10,6 +10,8 @@ import json
 from datetime import datetime
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
+import re
+import time
 
 # .env dosyasından çevre değişkenlerini yükle
 load_dotenv()
@@ -64,6 +66,30 @@ class YouTubeScraper:
             print(f"❌ Hata oluştu: {str(e)}")
             return []
 
+    def extract_video_id(self, video_url):
+        """
+        YouTube URL'sinden video ID'yi çıkar
+
+        Args:
+            video_url (str): YouTube video URL'si
+
+        Returns:
+            str: Video ID veya None
+        """
+        # Farklı YouTube URL formatları için regex
+        patterns = [
+            r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',
+            r'(?:embed\/)([0-9A-Za-z_-]{11})',
+            r'(?:watch\?v=)([0-9A-Za-z_-]{11})',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, video_url)
+            if match:
+                return match.group(1)
+
+        return None
+
     def fetch_video_transcript(self, video_url):
         """
         Verilen video URL'sinden altyazıları çek
@@ -78,7 +104,14 @@ class YouTubeScraper:
 
         try:
             # Video ID'yi URL'den çıkar
-            video_id = video_url.split('watch?v=')[-1].split('&')[0]
+            video_id = self.extract_video_id(video_url)
+
+            if not video_id:
+                print(f"⚠️ Video ID çıkarılamadı: {video_url}")
+                return ""
+
+            # Rate limiting için kısa bekleme
+            time.sleep(0.5)
 
             # Önce İngilizce altyazı dene
             try:
@@ -97,7 +130,8 @@ class YouTubeScraper:
                         lang = transcript_info.language_code
                         print(f"✅ {lang} dilinde altyazı bulundu ({len(transcript)} karakter)")
                         return transcript
-                except:
+                except Exception as inner_e:
+                    print(f"⚠️ Mevcut diller denendi ama başarısız: {str(inner_e)}")
                     pass
 
             print("⚠️ Altyazı bulunamadı")
@@ -108,6 +142,9 @@ class YouTubeScraper:
             return ""
         except Exception as e:
             print(f"⚠️ Altyazı çekilemedi: {str(e)}")
+            # Video ID'yi debug için yazdır
+            if video_id:
+                print(f"   Video ID: {video_id}")
             return ""
 
     def save_video_data(self, video, transcript, output_dir="videos"):
