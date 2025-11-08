@@ -1,16 +1,35 @@
 # 📺 YouTube Kanal Analiz Aracı
 
-YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çeviren ve Gemini AI ile sohbet etmenizi sağlayan kapsamlı bir araç.
+YouTube kanallarındaki videoları analiz eden ve Gemini 2.5 Flash AI ile **Türkçe sohbet** etmenizi sağlayan kapsamlı bir araç.
+
+## 🚀 Hızlı Başlangıç
+
+```bash
+# 1. Kurulum
+git clone https://github.com/botfusions/gemini_api_rag.git
+cd gemini_api_rag
+pip install -r requirements.txt
+
+# 2. API anahtarlarını ekle (.env dosyası)
+cp .env.example .env
+# APIFY_API_KEY ve GEMINI_API_KEY'i ekleyin
+
+# 3. Çalıştır
+python main.py
+# Menüden "5. Tüm işlemleri sırayla yap" seçin
+```
+
+**Özellik:** Altyazılar İngilizce, ama Gemini 2.5 Flash **Türkçe cevap verir!** ✨
 
 ## 🌟 Özellikler
 
-- ✅ YouTube kanallarından video bilgilerini çekme
-- ✅ Video altyazılarını otomatik çekme (Apify + youtube-transcript-api fallback)
-- ✅ Altyazıları Türkçe'ye çevirme
-- ✅ Videoları Gemini AI'a yükleme
-- ✅ Videolar hakkında Türkçe sohbet arayüzü
+- ✅ YouTube kanallarından video bilgilerini çekme (Apify)
+- ✅ Video altyazılarını otomatik çekme ve SRT parse etme
+- ✅ Dual-source altyazı sistemi (Apify + youtube-transcript-api fallback)
+- ✅ Videoları Gemini 2.5 Flash AI'a yükleme
+- ✅ **Videolar hakkında Türkçe sohbet** (altyazılar İngilizce, cevaplar Türkçe)
 - ✅ Modüler ve genişletilebilir yapı
-- ✅ Çoklu altyazı kaynağı desteği (güvenilirlik için)
+- ✅ Hızlı ve ucuz (Gemini 2.5 Flash kullanıyor)
 
 ## 📋 Gereksinimler
 
@@ -101,11 +120,11 @@ python main.py
 ```
 
 Ana menü seçenekleri:
-1. **Yeni kanal analiz et** - YouTube kanalından videoları çeker
-2. **Mevcut videoları Türkçe'ye çevir** - Çekilen altyazıları çevirir
-3. **Videoları Gemini'ye yükle** - Çevrilmiş videoları AI'a yükler
-4. **Chat'i başlat** - Video içerikleri hakkında sohbet edin
-5. **Tüm işlemleri sırayla yap** - 1-4 adımlarını otomatik yapar
+1. **Yeni kanal analiz et** - YouTube kanalından videoları çeker (İngilizce altyazılar)
+2. **Mevcut videoları Türkçe'ye çevir** - ⚠️ ARTIK GEREKSIZ (Gemini 2.5 Flash direkt Türkçe konuşuyor)
+3. **Videoları Gemini'ye yükle** - Videoları Gemini 2.5 Flash AI'a yükler
+4. **Chat'i başlat** - Video içerikleri hakkında **Türkçe** sohbet edin
+5. **Tüm işlemleri sırayla yap** - Hızlı başlangıç için tüm adımları otomatik yapar
 
 ### Yöntem 2: Modüler Kullanım
 
@@ -115,15 +134,15 @@ Ana menü seçenekleri:
 python youtube_scraper.py
 ```
 
-Kanal URL'si girin ve videolar `videos/` dizinine kaydedilir.
+Kanal URL'si girin ve videolar `videos/` dizinine kaydedilir (İngilizce altyazılarla).
 
-#### 2️⃣ Çeviri
+#### 2️⃣ Çeviri (İsteğe Bağlı - Artık Gereksiz)
 
 ```bash
 python translator.py
 ```
 
-`videos/` dizinindeki tüm videoların altyazıları Türkçe'ye çevrilir.
+⚠️ **Not:** Gemini 2.5 Flash zaten İngilizce altyazıları okuyup Türkçe cevap veriyor. Bu adım artık gereksiz.
 
 #### 3️⃣ Gemini'ye Yükleme ve Chat
 
@@ -131,7 +150,7 @@ python translator.py
 python chat.py
 ```
 
-Videoları Gemini'ye yükler ve sohbet arayüzünü başlatır.
+Videoları Gemini 2.5 Flash'a yükler ve Türkçe sohbet arayüzünü başlatır.
 
 ## 📁 Proje Yapısı
 
@@ -166,10 +185,11 @@ Her video için oluşturulan JSON dosyası şu bilgileri içerir:
   "views": 1000,
   "likes": 50,
   "duration": "PT10M30S",
-  "transcript": "Orijinal altyazı...",
-  "transcript_tr": "Türkçe çeviri..."
+  "transcript": "İngilizce altyazı metni (SRT'den parse edilmiş)"
 }
 ```
+
+⚠️ **Not:** `transcript_tr` alanı artık kullanılmıyor. Gemini 2.5 Flash direkt İngilizce altyazıları okuyup Türkçe cevap veriyor.
 
 ## 💬 Chat Özellikleri
 
@@ -219,12 +239,25 @@ Chat arayüzü ile yapabilecekleriniz:
 videos = scraper.fetch_channel_videos(channel_url, max_videos=100)
 ```
 
-### Çeviri Dili Değiştirme
+### Gemini Model Değiştirme
 
-`translator.py` içinde hedef dili değiştirin:
+`gemini_client.py` içinde farklı Gemini modeli kullanabilirsiniz:
 
 ```python
-self.translator = GoogleTranslator(source='auto', target='en')  # İngilizce için
+self.model = genai.GenerativeModel('gemini-2.5-flash')  # Varsayılan (hızlı ve ucuz)
+# veya
+self.model = genai.GenerativeModel('gemini-1.5-pro')    # Daha güçlü ama pahalı
+```
+
+### Altyazı Dili Değiştirme
+
+`youtube_scraper.py` içinde altyazı dilini değiştirebilirsiniz:
+
+```python
+run_input = {
+    "subtitleLang": "tr",  # Türkçe altyazı için
+    # veya "en", "es", "fr", vb.
+}
 ```
 
 ## 🐛 Sorun Giderme
@@ -285,12 +318,20 @@ for item in client.dataset(run["defaultDatasetId"]).iterate_items():
 
 #### Fallback Sistemi
 - **Yeni özellik:** Apify başarısız olursa otomatik olarak youtube-transcript-api kullanılır
-- Önce Türkçe altyazı, sonra İngilizce, en son otomatik oluşturulan altyazılar denenir
+- Önce manuel altyazı, sonra otomatik oluşturulan altyazılar denenir
 - Video ID formatının doğru olduğundan emin olun
 
-### Çeviri çok yavaş
-- `translator.py` içindeki `time.sleep()` değerini artırın (rate limiting)
-- Daha az video ile test edin
+#### ⚡ Hızlı Başlangıç
+1. Apify ile İngilizce altyazıları çekin (SRT parse otomatik)
+2. Direkt Gemini 2.5 Flash'a yükleyin
+3. **Türkçe sohbet edin!** (çeviri gerekmez)
+
+### Çeviri ile ilgili sorular
+
+⚠️ **Artık Türkçe çeviri gerekmez!** Gemini 2.5 Flash:
+- İngilizce altyazıları okuyup anlar
+- Türkçe soru sorunca Türkçe cevap verir
+- Daha hızlı ve daha ucuz (çeviri API maliyeti yok)
 
 ### Gemini yükleme hatası
 
@@ -364,9 +405,9 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## 🙏 Teşekkürler
 
-- [Apify](https://apify.com/) - YouTube scraping için
-- [Google Gemini](https://deepmind.google/technologies/gemini/) - AI chat için
-- [deep-translator](https://github.com/nidhaloff/deep-translator) - Çeviri için
+- [Apify](https://apify.com/) - YouTube video ve altyazı çekme için
+- [Google Gemini 2.5 Flash](https://deepmind.google/technologies/gemini/) - Türkçe AI chat için
+- [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) - Fallback altyazı sistemi için
 
 ## 📧 İletişim
 
