@@ -163,6 +163,8 @@ class YouTubeScraper:
         # Önce Apify ile dene
         run_input = {
             "startUrls": [{"url": video_url}],
+            "subtitlesLanguage": "en",  # Altyazı dilini belirt
+            "subtitlesFormat": "text",  # Text formatında al
         }
 
         try:
