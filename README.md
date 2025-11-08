@@ -5,11 +5,12 @@ YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çevir
 ## 🌟 Özellikler
 
 - ✅ YouTube kanallarından video bilgilerini çekme
-- ✅ Video altyazılarını otomatik çekme
+- ✅ Video altyazılarını otomatik çekme (Apify + youtube-transcript-api fallback)
 - ✅ Altyazıları Türkçe'ye çevirme
 - ✅ Videoları Gemini AI'a yükleme
 - ✅ Videolar hakkında Türkçe sohbet arayüzü
 - ✅ Modüler ve genişletilebilir yapı
+- ✅ Çoklu altyazı kaynağı desteği (güvenilirlik için)
 
 ## 📋 Gereksinimler
 
@@ -190,6 +191,11 @@ self.translator = GoogleTranslator(source='auto', target='en')  # İngilizce iç
 - Kanal URL'sinin doğru olduğundan emin olun
 - Kanalın herkese açık olduğunu kontrol edin
 - Apify limitlerini kontrol edin
+
+### Altyazı çekme sorunları
+- **Yeni özellik:** Apify başarısız olursa otomatik olarak youtube-transcript-api kullanılır
+- Önce Türkçe altyazı, sonra İngilizce, en son otomatik oluşturulan altyazılar denenir
+- Video ID formatının doğru olduğundan emin olun
 
 ### Çeviri çok yavaş
 - `translator.py` içindeki `time.sleep()` değerini artırın (rate limiting)
