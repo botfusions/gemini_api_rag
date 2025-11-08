@@ -24,7 +24,7 @@ YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çevir
 
 1. **Repoyu klonlayın:**
 ```bash
-git clone <repo-url>
+git clone https://github.com/botfusions/gemini_api_rag.git
 cd gemini_api_rag
 ```
 
@@ -48,17 +48,13 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ### 🪟 Windows PowerShell
 
-1. **Python'un yüklü olduğunu kontrol edin:**
+1. **Repoyu klonlayın:**
 ```powershell
-python --version
+git clone https://github.com/botfusions/gemini_api_rag.git
+cd gemini_api_rag
 ```
 
-2. **Proje klasörüne gidin:**
-```powershell
-cd C:\Users\YourUsername\gemini_api_rag
-```
-
-3. **Sanal ortam oluşturun (önerilen):**
+2. **Sanal ortam oluşturun (önerilen):**
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
@@ -69,12 +65,12 @@ python -m venv venv
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-4. **Bağımlılıkları yükleyin:**
+3. **Bağımlılıkları yükleyin:**
 ```powershell
 pip install -r requirements.txt
 ```
 
-5. **API anahtarlarını ayarlayın:**
+4. **API anahtarlarını ayarlayın:**
 ```powershell
 # .env dosyasını oluştur
 Copy-Item .env.example .env
@@ -89,7 +85,7 @@ APIFY_API_KEY=buraya_apify_anahtarinizi_yapisirin
 GEMINI_API_KEY=buraya_gemini_anahtarinizi_yapisirin
 ```
 
-6. **Programı çalıştırın:**
+5. **Programı çalıştırın:**
 ```powershell
 python main.py
 ```
