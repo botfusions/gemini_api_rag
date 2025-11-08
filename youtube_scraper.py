@@ -8,8 +8,15 @@ from apify_client import ApifyClient
 from dotenv import load_dotenv
 import json
 from datetime import datetime
-from youtube_transcript_api import YouTubeTranscriptApi
 import re
+
+# YouTube Transcript API import
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    TRANSCRIPT_API_AVAILABLE = True
+except ImportError:
+    print("⚠️ youtube-transcript-api yüklü değil. Sadece Apify kullanılacak.")
+    TRANSCRIPT_API_AVAILABLE = False
 
 # .env dosyasından çevre değişkenlerini yükle
 load_dotenv()
@@ -96,22 +103,36 @@ class YouTubeScraper:
         Returns:
             str: Video altyazı metni
         """
+        if not TRANSCRIPT_API_AVAILABLE:
+            print("⚠️ youtube-transcript-api mevcut değil")
+            return ""
+
         try:
             video_id = self.extract_video_id(video_url)
             if not video_id:
                 print(f"⚠️ Video ID çıkarılamadı: {video_url}")
                 return ""
 
-            # Önce Türkçe altyazı dene, yoksa otomatik oluşturulan altyazıları al
+            print(f"   Video ID: {video_id}")
+
+            # Önce Türkçe altyazı dene
             try:
+                print("   Türkçe altyazı deneniyor...")
                 transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['tr'])
-            except:
+                print(f"   ✅ Türkçe altyazı bulundu!")
+            except Exception as e1:
+                print(f"   ⚠️ Türkçe altyazı yok: {str(e1)[:50]}")
                 # Türkçe yoksa İngilizce dene
                 try:
+                    print("   İngilizce altyazı deneniyor...")
                     transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
-                except:
+                    print(f"   ✅ İngilizce altyazı bulundu!")
+                except Exception as e2:
+                    print(f"   ⚠️ İngilizce altyazı yok: {str(e2)[:50]}")
                     # Otomatik oluşturulan altyazıları al
+                    print("   Otomatik oluşturulan altyazılar deneniyor...")
                     transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                    print(f"   ✅ Otomatik altyazı bulundu!")
 
             # Altyazıları birleştir
             transcript = ' '.join([item['text'] for item in transcript_list])
@@ -119,7 +140,11 @@ class YouTubeScraper:
             return transcript
 
         except Exception as e:
-            print(f"⚠️ YouTube Transcript API hatası: {str(e)}")
+            print(f"❌ YouTube Transcript API HATASI:")
+            print(f"   Hata tipi: {type(e).__name__}")
+            print(f"   Hata mesajı: {str(e)}")
+            import traceback
+            print(f"   Detay: {traceback.format_exc()[:500]}")
             return ""
 
     def fetch_video_transcript(self, video_url):
