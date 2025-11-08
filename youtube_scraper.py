@@ -147,6 +147,39 @@ class YouTubeScraper:
             print(f"   Detay: {traceback.format_exc()[:500]}")
             return ""
 
+    def parse_srt_to_text(self, srt_content):
+        """
+        SRT formatındaki altyazıyı düz metne çevirir
+
+        Args:
+            srt_content (str): SRT formatında altyazı
+
+        Returns:
+            str: Düz metin
+        """
+        import re
+
+        # SRT zaman damgalarını kaldır (00:00:00,000 --> 00:00:00,000 formatı)
+        # ve numara satırlarını kaldır
+        lines = srt_content.split('\n')
+        text_lines = []
+
+        for line in lines:
+            line = line.strip()
+            # Boş satırları atla
+            if not line:
+                continue
+            # Sadece sayılardan oluşan satırları atla (segment numaraları)
+            if line.isdigit():
+                continue
+            # Zaman damgası satırlarını atla (-->  içerenler)
+            if '-->' in line:
+                continue
+            # Geriye kalan satırlar altyazı metni
+            text_lines.append(line)
+
+        return ' '.join(text_lines)
+
     def fetch_video_transcript(self, video_url):
         """
         Verilen video URL'sinden altyazıları çek
@@ -160,7 +193,7 @@ class YouTubeScraper:
         """
         print(f"📝 Altyazı çekiliyor: {video_url}")
 
-        # Önce Apify ile dene - Doğru parametreleri kullan
+        # Önce Apify ile dene
         run_input = {
             "startUrls": [{"url": video_url}],
             "downloadSubtitles": True,  # Altyazıları indir
@@ -173,32 +206,23 @@ class YouTubeScraper:
             # Actor'ü çalıştır
             run = self.client.actor("streamers/youtube-scraper").call(run_input=run_input)
 
-            # Video ID'yi çıkar
-            video_id = self.extract_video_id(video_url)
+            # Dataset'ten altyazıları al
+            for item in self.client.dataset(run["defaultDatasetId"]).iterate_items():
+                # Subtitles listesi var mı?
+                if 'subtitles' in item and item['subtitles']:
+                    subtitles_list = item['subtitles']
 
-            # Key-Value Store'dan altyazıyı al
-            kvs_id = run.get("defaultKeyValueStoreId")
-            if kvs_id and video_id:
-                kvs_client = self.client.key_value_store(kvs_id)
+                    # Liste ise, ilk öğeyi al
+                    if isinstance(subtitles_list, list) and len(subtitles_list) > 0:
+                        subtitle_item = subtitles_list[0]
 
-                # Farklı key formatlarını dene
-                possible_keys = [
-                    f"{video_id}_subtitles",
-                    f"subtitles_{video_id}",
-                    video_id,
-                    "subtitles"
-                ]
-
-                for key in possible_keys:
-                    try:
-                        subtitle_data = kvs_client.get_record(key)
-                        if subtitle_data and subtitle_data.get('value'):
-                            transcript = subtitle_data['value']
-                            if isinstance(transcript, str):
-                                print(f"✅ Apify ile altyazı bulundu ({len(transcript)} karakter)")
-                                return transcript
-                    except:
-                        continue
+                        # SRT içeriğini al
+                        if 'srt' in subtitle_item and subtitle_item['srt']:
+                            srt_content = subtitle_item['srt']
+                            # SRT'yi düz metne çevir
+                            transcript = self.parse_srt_to_text(srt_content)
+                            print(f"✅ Apify ile altyazı bulundu ({len(transcript)} karakter)")
+                            return transcript
 
         except Exception as e:
             print(f"⚠️ Apify hatası: {str(e)}")
