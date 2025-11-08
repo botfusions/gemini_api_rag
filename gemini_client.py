@@ -21,7 +21,7 @@ class GeminiClient:
             raise ValueError("GEMINI_API_KEY bulunamadı. Lütfen .env dosyasını kontrol edin.")
 
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
         self.uploaded_files = []
         self.chat = None
 
@@ -53,8 +53,8 @@ class GeminiClient:
 ## Açıklama
 {video_data.get('description', '')}
 
-## Altyazı (Türkçe)
-{video_data.get('transcript_tr', video_data.get('transcript', ''))}
+## Video Altyazısı / Transcript
+{video_data.get('transcript', '')}
 """
             return doc
 
@@ -144,15 +144,17 @@ class GeminiClient:
         system_instruction = f"""
 Sen bir YouTube kanal analiz asistanısın. Kullanıcıya kanal videolarıyla ilgili sorularını cevapla.
 
-{len(self.uploaded_files)} video dosyası yüklendi. Bu videolar hakkında detaylı bilgi verebilirsin.
+{len(self.uploaded_files)} video dosyası yüklendi. Her video dosyasında başlık, açıklama ve TAM ALTYAZI METNİ var.
 
 {context}
 
-Lütfen:
-- Türkçe cevap ver
+ÖNEMLİ TALİMATLAR:
+- **MUTLAKA TÜRKÇE CEVAP VER** (video altyazıları İngilizce olabilir ama sen Türkçe konuş)
+- Video altyazılarını/transcript'leri DİKKATLİCE OKU ve analiz et
 - Net ve anlaşılır ol
 - Video başlıkları, tarihleri ve içeriklerine atıfta bulun
 - Gerektiğinde video URL'lerini paylaş
+- Videolarda geçen spesifik detaylardan bahset
 """
 
         # Chat başlat
