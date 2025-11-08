@@ -6,6 +6,12 @@ Bu rehber, YouTube Kanal Analiz Aracı'nı 5 dakikada çalıştırmanıza yardı
 
 ### 1️⃣ Kurulum
 
+**Windows:**
+```cmd
+setup.bat
+```
+
+**Linux/Mac:**
 ```bash
 bash setup.sh
 ```
@@ -20,11 +26,17 @@ Bu script:
 
 `.env` dosyasını düzenleyin:
 
+**Windows:**
+```cmd
+notepad .env
+```
+
+**Linux/Mac:**
 ```bash
 nano .env
 ```
 
-veya favori editörünüzle açın ve API anahtarlarınızı ekleyin:
+API anahtarlarınızı ekleyin:
 
 ```env
 APIFY_API_KEY=your_actual_apify_key
@@ -47,12 +59,17 @@ GEMINI_API_KEY=your_actual_gemini_key
 
 ### 3️⃣ Çalıştırın
 
+**Windows:**
+```cmd
+run.bat
+```
+
+**Linux/Mac:**
 ```bash
 bash run.sh
 ```
 
-veya doğrudan:
-
+**Veya doğrudan:**
 ```bash
 python main.py
 ```
@@ -151,6 +168,27 @@ Detaylı dokümantasyon için [README.md](README.md) dosyasına bakın.
 
 ## 🚀 Hızlı Referans
 
+**Windows:**
+```cmd
+# Kurulum
+setup.bat
+
+# Çalıştırma
+run.bat
+# veya
+python main.py
+
+# Sadece video çek
+python youtube_scraper.py
+
+# Sadece çevir
+python translator.py
+
+# Sadece chat
+python chat.py
+```
+
+**Linux/Mac:**
 ```bash
 # Kurulum
 bash setup.sh
