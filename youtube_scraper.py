@@ -164,7 +164,7 @@ class YouTubeScraper:
         run_input = {
             "startUrls": [{"url": video_url}],
             "subtitlesLanguage": "en",  # Altyazı dilini belirt
-            "subtitlesFormat": "text",  # Text formatında al
+            "subtitlesFormat": "plaintext",  # Düz metin formatında al
         }
 
         try:
