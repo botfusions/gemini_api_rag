@@ -8,6 +8,8 @@ from apify_client import ApifyClient
 from dotenv import load_dotenv
 import json
 from datetime import datetime
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 
 # .env dosyasından çevre değişkenlerini yükle
 load_dotenv()
@@ -74,31 +76,38 @@ class YouTubeScraper:
         """
         print(f"📝 Altyazı çekiliyor: {video_url}")
 
-        # Apify YouTube Transcript Scraper actor'ünü kullan
-        run_input = {
-            "startUrls": [{"url": video_url}],
-        }
-
         try:
-            # Actor'ü çalıştır
-            run = self.client.actor("streamers/youtube-scraper").call(run_input=run_input)
+            # Video ID'yi URL'den çıkar
+            video_id = video_url.split('watch?v=')[-1].split('&')[0]
 
-            # Sonuçları al
-            for item in self.client.dataset(run["defaultDatasetId"]).iterate_items():
-                # Altyazı varsa döndür
-                if 'subtitles' in item and item['subtitles']:
-                    transcript = ' '.join([sub.get('text', '') for sub in item['subtitles']])
-                    print(f"✅ Altyazı bulundu ({len(transcript)} karakter)")
-                    return transcript
-                elif 'description' in item:
-                    print("⚠️ Altyazı bulunamadı, açıklama kullanılıyor")
-                    return item['description']
+            # Önce İngilizce altyazı dene
+            try:
+                transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                transcript = ' '.join([item['text'] for item in transcript_list])
+                print(f"✅ İngilizce altyazı bulundu ({len(transcript)} karakter)")
+                return transcript
+            except NoTranscriptFound:
+                # İngilizce yoksa, mevcut dilleri dene
+                try:
+                    transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                    # İlk mevcut altyazıyı al
+                    for transcript_info in transcript_list:
+                        transcript_data = transcript_info.fetch()
+                        transcript = ' '.join([item['text'] for item in transcript_data])
+                        lang = transcript_info.language_code
+                        print(f"✅ {lang} dilinde altyazı bulundu ({len(transcript)} karakter)")
+                        return transcript
+                except:
+                    pass
 
             print("⚠️ Altyazı bulunamadı")
             return ""
 
+        except TranscriptsDisabled:
+            print("⚠️ Bu video için altyazılar devre dışı")
+            return ""
         except Exception as e:
-            print(f"❌ Altyazı çekilirken hata: {str(e)}")
+            print(f"⚠️ Altyazı çekilemedi: {str(e)}")
             return ""
 
     def save_video_data(self, video, transcript, output_dir="videos"):
