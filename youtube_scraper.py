@@ -8,6 +8,8 @@ from apify_client import ApifyClient
 from dotenv import load_dotenv
 import json
 from datetime import datetime
+from youtube_transcript_api import YouTubeTranscriptApi
+import re
 
 # .env dosyasından çevre değişkenlerini yükle
 load_dotenv()
@@ -62,9 +64,68 @@ class YouTubeScraper:
             print(f"❌ Hata oluştu: {str(e)}")
             return []
 
+    def extract_video_id(self, video_url):
+        """
+        YouTube video URL'sinden video ID'sini çıkar
+
+        Args:
+            video_url (str): YouTube video URL'si
+
+        Returns:
+            str: Video ID veya None
+        """
+        patterns = [
+            r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',
+            r'(?:embed\/)([0-9A-Za-z_-]{11})',
+            r'(?:watch\?v=)([0-9A-Za-z_-]{11})'
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, video_url)
+            if match:
+                return match.group(1)
+        return None
+
+    def fetch_transcript_with_api(self, video_url):
+        """
+        youtube-transcript-api kullanarak altyazı çek
+
+        Args:
+            video_url (str): YouTube video URL'si
+
+        Returns:
+            str: Video altyazı metni
+        """
+        try:
+            video_id = self.extract_video_id(video_url)
+            if not video_id:
+                print(f"⚠️ Video ID çıkarılamadı: {video_url}")
+                return ""
+
+            # Önce Türkçe altyazı dene, yoksa otomatik oluşturulan altyazıları al
+            try:
+                transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['tr'])
+            except:
+                # Türkçe yoksa İngilizce dene
+                try:
+                    transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                except:
+                    # Otomatik oluşturulan altyazıları al
+                    transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+
+            # Altyazıları birleştir
+            transcript = ' '.join([item['text'] for item in transcript_list])
+            print(f"✅ YouTube Transcript API ile altyazı bulundu ({len(transcript)} karakter)")
+            return transcript
+
+        except Exception as e:
+            print(f"⚠️ YouTube Transcript API hatası: {str(e)}")
+            return ""
+
     def fetch_video_transcript(self, video_url):
         """
         Verilen video URL'sinden altyazıları çek
+        Önce Apify kullanır, başarısız olursa youtube-transcript-api ile dener
 
         Args:
             video_url (str): YouTube video URL'si
@@ -74,7 +135,7 @@ class YouTubeScraper:
         """
         print(f"📝 Altyazı çekiliyor: {video_url}")
 
-        # Apify YouTube Transcript Scraper actor'ünü kullan
+        # Önce Apify ile dene
         run_input = {
             "startUrls": [{"url": video_url}],
         }
@@ -88,18 +149,22 @@ class YouTubeScraper:
                 # Altyazı varsa döndür
                 if 'subtitles' in item and item['subtitles']:
                     transcript = ' '.join([sub.get('text', '') for sub in item['subtitles']])
-                    print(f"✅ Altyazı bulundu ({len(transcript)} karakter)")
+                    print(f"✅ Apify ile altyazı bulundu ({len(transcript)} karakter)")
                     return transcript
-                elif 'description' in item:
-                    print("⚠️ Altyazı bulunamadı, açıklama kullanılıyor")
-                    return item['description']
-
-            print("⚠️ Altyazı bulunamadı")
-            return ""
 
         except Exception as e:
-            print(f"❌ Altyazı çekilirken hata: {str(e)}")
-            return ""
+            print(f"⚠️ Apify hatası: {str(e)}")
+
+        # Apify başarısız olduysa youtube-transcript-api ile dene
+        print("🔄 YouTube Transcript API deneniyor...")
+        transcript = self.fetch_transcript_with_api(video_url)
+
+        if transcript:
+            return transcript
+
+        # Hiçbir yöntem işe yaramadıysa boş döndür
+        print("⚠️ Altyazı bulunamadı")
+        return ""
 
     def save_video_data(self, video, transcript, output_dir="videos"):
         """

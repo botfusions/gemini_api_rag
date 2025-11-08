@@ -5,11 +5,12 @@ YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çevir
 ## 🌟 Özellikler
 
 - ✅ YouTube kanallarından video bilgilerini çekme
-- ✅ Video altyazılarını otomatik çekme
+- ✅ Video altyazılarını otomatik çekme (Apify + youtube-transcript-api fallback)
 - ✅ Altyazıları Türkçe'ye çevirme
 - ✅ Videoları Gemini AI'a yükleme
 - ✅ Videolar hakkında Türkçe sohbet arayüzü
 - ✅ Modüler ve genişletilebilir yapı
+- ✅ Çoklu altyazı kaynağı desteği (güvenilirlik için)
 
 ## 📋 Gereksinimler
 
@@ -19,9 +20,11 @@ YouTube kanallarındaki videoları analiz eden, altyazıları Türkçe'ye çevir
 
 ## 🚀 Kurulum
 
+### Linux / macOS
+
 1. **Repoyu klonlayın:**
 ```bash
-git clone <repo-url>
+git clone https://github.com/botfusions/gemini_api_rag.git
 cd gemini_api_rag
 ```
 
@@ -41,6 +44,50 @@ cp .env.example .env
 ```
 APIFY_API_KEY=your_apify_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### 🪟 Windows PowerShell
+
+1. **Repoyu klonlayın:**
+```powershell
+git clone https://github.com/botfusions/gemini_api_rag.git
+cd gemini_api_rag
+```
+
+2. **Sanal ortam oluşturun (önerilen):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+**Not:** Eğer çalıştırma izni hatası alırsanız:
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+3. **Bağımlılıkları yükleyin:**
+```powershell
+pip install -r requirements.txt
+```
+
+4. **API anahtarlarını ayarlayın:**
+```powershell
+# .env dosyasını oluştur
+Copy-Item .env.example .env
+
+# Not Defteri ile düzenle
+notepad .env
+```
+
+`.env` dosyasına API anahtarlarınızı ekleyin:
+```
+APIFY_API_KEY=buraya_apify_anahtarinizi_yapisirin
+GEMINI_API_KEY=buraya_gemini_anahtarinizi_yapisirin
+```
+
+5. **Programı çalıştırın:**
+```powershell
+python main.py
 ```
 
 ## 💡 Kullanım
@@ -191,6 +238,11 @@ self.translator = GoogleTranslator(source='auto', target='en')  # İngilizce iç
 - Kanalın herkese açık olduğunu kontrol edin
 - Apify limitlerini kontrol edin
 
+### Altyazı çekme sorunları
+- **Yeni özellik:** Apify başarısız olursa otomatik olarak youtube-transcript-api kullanılır
+- Önce Türkçe altyazı, sonra İngilizce, en son otomatik oluşturulan altyazılar denenir
+- Video ID formatının doğru olduğundan emin olun
+
 ### Çeviri çok yavaş
 - `translator.py` içindeki `time.sleep()` değerini artırın (rate limiting)
 - Daha az video ile test edin
@@ -199,6 +251,38 @@ self.translator = GoogleTranslator(source='auto', target='en')  # İngilizce iç
 - API anahtarının geçerli olduğundan emin olun
 - Gemini API limitlerini kontrol edin
 - İnternet bağlantınızı kontrol edin
+
+### 🪟 Windows PowerShell Sorunları
+
+#### "python komutu bulunamadı"
+```powershell
+# Python'un PATH'e eklendiğinden emin olun
+# Veya tam yol ile çalıştırın:
+C:\Python311\python.exe main.py
+```
+
+#### "Activate.ps1 çalıştırılamıyor"
+```powershell
+# PowerShell'i Yönetici olarak açın:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+#### Modül bulunamadı hatası
+```powershell
+# Paketleri tekrar yükleyin:
+pip install --upgrade -r requirements.txt
+```
+
+#### Kurulumu test etme
+```powershell
+# Python versiyonu
+python --version
+
+# Paket kontrolü
+python -c "import apify_client; print('Apify OK')"
+python -c "import google.generativeai; print('Gemini OK')"
+python -c "from youtube_transcript_api import YouTubeTranscriptApi; print('YouTube API OK')"
+```
 
 ## 🤝 Katkıda Bulunma
 
